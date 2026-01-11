@@ -1,0 +1,50 @@
+appId: com.indiepulse.app
+---
+# Cohort Analysis E2E Test
+# Tests the cohort heatmap and analysis features
+# Note: Requires authenticated state
+
+- launchApp:
+    clearState: false
+
+# Navigate to analysis tab
+- tapOn:
+    id: "tab-analysis"
+
+# Verify cohort screen
+- assertVisible: "コホート分析"
+- assertVisible: "Pro"
+
+# Check cohort data is displayed
+- assertVisible: "継続率"
+
+# Check summary stats
+- assertVisible: "平均継続率"
+- assertVisible: "平均LTV"
+- assertVisible: "総ユーザー数"
+- assertVisible: "分析期間"
+
+# Check legend
+- assertVisible: "凡例"
+- assertVisible: "80%以上"
+- assertVisible: "60-79%"
+- assertVisible: "40-59%"
+
+# Test horizontal scroll on heatmap
+- scroll:
+    direction: RIGHT
+    speed: SLOW
+
+# Scroll back
+- scroll:
+    direction: LEFT
+    speed: SLOW
+
+# Verify heatmap month headers are visible
+# Should show cohort months
+- assertVisible: "月"
+
+# Test vertical scroll for more cohorts
+- scroll:
+    direction: UP
+    speed: SLOW

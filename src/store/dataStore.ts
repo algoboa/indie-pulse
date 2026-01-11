@@ -15,6 +15,10 @@ import {
   fetchSegmentData,
 } from '../services/apiService';
 
+// Debounce timeout for period filter changes
+let periodFilterDebounceTimeout: NodeJS.Timeout | null = null;
+const DEBOUNCE_DELAY = 300;
+
 interface DataState {
   // Dashboard data
   metrics: DashboardMetrics | null;
@@ -132,11 +136,19 @@ export const useDataStore = create<DataState>((set, get) => ({
     }
   },
 
-  // Set period filter
+  // Set period filter with debounced fetch
   setPeriodFilter: (filter: PeriodFilter) => {
     set({ periodFilter: filter });
-    // Re-fetch data with new filter
-    get().fetchDashboard();
+
+    // Clear existing timeout to debounce rapid filter changes
+    if (periodFilterDebounceTimeout) {
+      clearTimeout(periodFilterDebounceTimeout);
+    }
+
+    // Debounce the data fetch
+    periodFilterDebounceTimeout = setTimeout(() => {
+      get().fetchDashboard();
+    }, DEBOUNCE_DELAY);
   },
 
   // Clear error

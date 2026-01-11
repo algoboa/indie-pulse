@@ -1,0 +1,90 @@
+appId: com.indiepulse.app
+---
+# Input Validation Edge Cases E2E Test
+# Tests edge cases for form inputs
+
+- launchApp:
+    clearState: true
+
+# Go to signup for comprehensive input testing
+- tapOn: "アカウントを作成"
+- assertVisible: "アカウント作成"
+
+# Test 1: Very long name (edge case)
+- tapOn:
+    id: "name-input"
+- inputText: "ThisIsAVeryLongNameThatExceedsNormalLengthExpectationsForAUserNameField"
+# Should accept or truncate appropriately
+
+# Test 2: Name with special characters
+- clearText:
+    id: "name-input"
+- inputText: "Test User <script>alert('xss')</script>"
+# Should sanitize or reject
+
+# Test 3: Email with spaces
+- tapOn:
+    id: "email-input"
+- inputText: " test@example.com "
+# Should trim or reject
+
+# Test 4: Email with unicode
+- clearText:
+    id: "email-input"
+- inputText: "tëst@example.com"
+# Should handle appropriately
+
+# Test 5: Password with only spaces
+- clearText:
+    id: "email-input"
+- inputText: "valid@example.com"
+- tapOn:
+    id: "password-input"
+- inputText: "      "
+- tapOn: "アカウントを作成"
+# Should show password error
+
+# Test 6: Password with special characters
+- clearText:
+    id: "password-input"
+- inputText: "P@ssw0rd!#$%^&*()"
+- tapOn:
+    id: "confirm-password-input"
+- inputText: "P@ssw0rd!#$%^&*()"
+# Should accept special characters
+
+# Test 7: Very long password
+- clearText:
+    id: "password-input"
+- inputText: "ThisIsAVeryLongPasswordThatExceedsNormalLengthExpectationsForSecurityPurposesAndShouldStillBeAccepted123!"
+- clearText:
+    id: "confirm-password-input"
+- inputText: "ThisIsAVeryLongPasswordThatExceedsNormalLengthExpectationsForSecurityPurposesAndShouldStillBeAccepted123!"
+# Should accept long passwords
+
+# Test 8: Unicode in password
+- clearText:
+    id: "password-input"
+- inputText: "パスワード123"
+- clearText:
+    id: "confirm-password-input"
+- inputText: "パスワード123"
+# Should handle unicode
+
+# Navigate back to test login edge cases
+- tapOn: "ログインはこちら"
+- assertVisible: "ログイン"
+
+# Test 9: SQL injection attempt in email
+- tapOn:
+    id: "email-input"
+- inputText: "'; DROP TABLE users; --"
+- tapOn: "ログイン"
+# Should show email validation error
+
+# Test 10: Empty spaces only
+- clearText:
+    id: "email-input"
+- inputText: "   "
+- tapOn: "ログイン"
+# Should show email required error

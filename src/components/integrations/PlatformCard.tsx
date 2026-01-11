@@ -54,7 +54,11 @@ const PlatformCard: React.FC<PlatformCardProps> = ({
   };
 
   return (
-    <View style={styles.card}>
+    <View
+      style={styles.card}
+      accessible={true}
+      accessibilityLabel={`${config.name}: ${isConnected ? '連携中' : '未連携'}`}
+    >
       <View style={styles.header}>
         <View style={[styles.iconContainer, { backgroundColor: config.color }]}>
           <MaterialCommunityIcons
@@ -88,6 +92,10 @@ const PlatformCard: React.FC<PlatformCardProps> = ({
               style={styles.syncButton}
               onPress={onSync}
               disabled={isSyncing}
+              accessibilityRole="button"
+              accessibilityLabel={`${config.name}を同期`}
+              accessibilityHint="プラットフォームからデータを取得します"
+              accessibilityState={{ disabled: isSyncing }}
             >
               {isSyncing ? (
                 <ActivityIndicator size="small" color={colors.accent.primary} />
@@ -106,6 +114,9 @@ const PlatformCard: React.FC<PlatformCardProps> = ({
             <TouchableOpacity
               style={styles.disconnectButton}
               onPress={onDisconnect}
+              accessibilityRole="button"
+              accessibilityLabel={`${config.name}の連携を解除`}
+              accessibilityHint="このプラットフォームとの連携を解除します"
             >
               <Text style={styles.disconnectButtonText}>連携解除</Text>
             </TouchableOpacity>
@@ -116,6 +127,10 @@ const PlatformCard: React.FC<PlatformCardProps> = ({
           style={styles.connectButton}
           onPress={onConnect}
           disabled={isConnecting}
+          accessibilityRole="button"
+          accessibilityLabel={`${config.name}と連携する`}
+          accessibilityHint="このプラットフォームとの連携を開始します"
+          accessibilityState={{ disabled: isConnecting }}
         >
           {isConnecting ? (
             <ActivityIndicator size="small" color={colors.text.primary} />
@@ -238,4 +253,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default PlatformCard;
+export default React.memo(PlatformCard);

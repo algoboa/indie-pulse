@@ -1,0 +1,68 @@
+appId: com.indiepulse.app
+---
+# Platform Integrations E2E Test
+# Tests connecting and managing platform integrations
+# Note: Requires authenticated state
+
+- launchApp:
+    clearState: false
+
+# Navigate to integrations tab
+- tapOn:
+    id: "tab-integrations"
+
+# Verify integrations screen
+- assertVisible: "プラットフォーム連携"
+
+# Check available platforms
+- assertVisible: "Stripe"
+- assertVisible: "App Store Connect"
+- assertVisible: "Google Play Console"
+- assertVisible: "RevenueCat"
+
+# Test connecting Stripe
+- tapOn:
+    text: "接続"
+    index: 0
+# Should show connecting state
+
+# Wait for mock OAuth to complete
+- extendedWaitUntil:
+    visible: "接続済み"
+    timeout: 5000
+
+# Verify connection status
+- assertVisible: "接続済み"
+- assertVisible: "同期"
+
+# Test sync button
+- tapOn: "同期"
+# Should show sync progress
+
+# Wait for sync to complete
+- extendedWaitUntil:
+    visible: "最終同期"
+    timeout: 10000
+
+# Connect another platform
+- tapOn:
+    text: "接続"
+    index: 0
+
+# Wait for connection
+- extendedWaitUntil:
+    visible:
+      text: "接続済み"
+      index: 1
+    timeout: 5000
+
+# Test Sync All button
+- assertVisible: "すべて同期"
+- tapOn: "すべて同期"
+
+# Test disconnect
+- tapOn:
+    text: "連携解除"
+    index: 0
+
+# Should show confirmation or remove connection

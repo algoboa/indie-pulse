@@ -35,9 +35,6 @@ export const useIntegrationsStore = create<IntegrationsState>((set, get) => ({
   connectPlatform: async (platform: PlatformType) => {
     set({ isConnecting: true, error: null });
 
-    // Simulate OAuth flow
-    console.log(`[${platform}] との連携を開始します`);
-
     try {
       await delay(1500);
 

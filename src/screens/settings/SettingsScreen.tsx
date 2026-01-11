@@ -1,29 +1,67 @@
 // Settings Screen for Indie Pulse
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Toast from 'react-native-toast-message';
 import { useAuthStore } from '../../store/authStore';
 import { Button } from '../../components/common';
 import { colors, spacing, typography, borderRadius } from '../../constants/theme';
 
+interface SettingsItem {
+  label: string;
+  icon: keyof typeof MaterialCommunityIcons.glyphMap;
+  isEnabled: boolean;
+  onPress?: () => void;
+}
+
 const SettingsScreen: React.FC = () => {
   const { user, logout, isLoading } = useAuthStore();
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      // Error handled by store
-    }
+  const handleLogout = () => {
+    Alert.alert(
+      'ログアウト確認',
+      'ログアウトしてもよろしいですか？',
+      [
+        { text: 'キャンセル', style: 'cancel' },
+        {
+          text: 'ログアウト',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await logout();
+              Toast.show({
+                type: 'success',
+                text1: 'ログアウトしました',
+              });
+            } catch (error) {
+              Toast.show({
+                type: 'error',
+                text1: 'エラー',
+                text2: 'ログアウトに失敗しました',
+              });
+            }
+          },
+        },
+      ]
+    );
   };
 
-  const settingsItems = [
-    { label: 'プロフィール編集', icon: '👤' },
-    { label: 'サブスクリプション管理', icon: '💳' },
-    { label: '連携アカウント', icon: '🔗' },
-    { label: '通知設定', icon: '🔔' },
-    { label: '利用規約', icon: '📄' },
-    { label: 'プライバシーポリシー', icon: '🔒' },
+  const handleComingSoon = (label: string) => {
+    Toast.show({
+      type: 'info',
+      text1: 'Coming Soon',
+      text2: `${label}機能は近日公開予定です`,
+    });
+  };
+
+  const settingsItems: SettingsItem[] = [
+    { label: 'プロフィール編集', icon: 'account-edit', isEnabled: false },
+    { label: 'サブスクリプション管理', icon: 'credit-card', isEnabled: false },
+    { label: '連携アカウント', icon: 'link-variant', isEnabled: false },
+    { label: '通知設定', icon: 'bell-outline', isEnabled: false },
+    { label: '利用規約', icon: 'file-document-outline', isEnabled: false },
+    { label: 'プライバシーポリシー', icon: 'shield-lock-outline', isEnabled: false },
   ];
 
   return (
@@ -58,10 +96,48 @@ const SettingsScreen: React.FC = () => {
         {/* Settings List */}
         <View style={styles.settingsList}>
           {settingsItems.map((item, index) => (
-            <TouchableOpacity key={index} style={styles.settingsItem}>
-              <Text style={styles.settingsIcon}>{item.icon}</Text>
-              <Text style={styles.settingsLabel}>{item.label}</Text>
-              <Text style={styles.settingsArrow}>→</Text>
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.settingsItem,
+                !item.isEnabled && styles.settingsItemDisabled,
+              ]}
+              onPress={() =>
+                item.isEnabled && item.onPress
+                  ? item.onPress()
+                  : handleComingSoon(item.label)
+              }
+              accessibilityRole="button"
+              accessibilityLabel={item.label}
+              accessibilityHint={
+                item.isEnabled ? `${item.label}を開く` : '近日公開予定'
+              }
+              accessibilityState={{ disabled: !item.isEnabled }}
+            >
+              <MaterialCommunityIcons
+                name={item.icon}
+                size={24}
+                color={item.isEnabled ? colors.text.primary : colors.text.tertiary}
+                style={styles.settingsIcon}
+              />
+              <Text
+                style={[
+                  styles.settingsLabel,
+                  !item.isEnabled && styles.settingsLabelDisabled,
+                ]}
+              >
+                {item.label}
+              </Text>
+              {!item.isEnabled && (
+                <View style={styles.comingSoonBadge}>
+                  <Text style={styles.comingSoonText}>準備中</Text>
+                </View>
+              )}
+              <MaterialCommunityIcons
+                name="chevron-right"
+                size={20}
+                color={colors.text.tertiary}
+              />
             </TouchableOpacity>
           ))}
         </View>
@@ -177,8 +253,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border.primary,
   },
+  settingsItemDisabled: {
+    opacity: 0.7,
+  },
   settingsIcon: {
-    fontSize: 20,
     marginRight: spacing.md,
   },
   settingsLabel: {
@@ -186,8 +264,18 @@ const styles = StyleSheet.create({
     fontSize: typography.fontSize.base,
     color: colors.text.primary,
   },
-  settingsArrow: {
-    fontSize: typography.fontSize.base,
+  settingsLabelDisabled: {
+    color: colors.text.tertiary,
+  },
+  comingSoonBadge: {
+    backgroundColor: colors.background.primary,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs / 2,
+    borderRadius: borderRadius.sm,
+    marginRight: spacing.sm,
+  },
+  comingSoonText: {
+    fontSize: typography.fontSize.xs,
     color: colors.text.tertiary,
   },
   logoutButton: {

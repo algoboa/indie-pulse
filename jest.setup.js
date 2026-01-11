@@ -1,6 +1,55 @@
 // Extend Jest with react-native matchers
 require('@testing-library/jest-native/extend-expect');
 
+// Mock @react-native-async-storage/async-storage
+jest.mock('@react-native-async-storage/async-storage', () => {
+  let store = {};
+  return {
+    setItem: jest.fn((key, value) => {
+      store[key] = value;
+      return Promise.resolve();
+    }),
+    getItem: jest.fn((key) => {
+      return Promise.resolve(store[key] || null);
+    }),
+    removeItem: jest.fn((key) => {
+      delete store[key];
+      return Promise.resolve();
+    }),
+    clear: jest.fn(() => {
+      store = {};
+      return Promise.resolve();
+    }),
+    getAllKeys: jest.fn(() => {
+      return Promise.resolve(Object.keys(store));
+    }),
+    multiGet: jest.fn((keys) => {
+      return Promise.resolve(keys.map((key) => [key, store[key] || null]));
+    }),
+    multiSet: jest.fn((keyValuePairs) => {
+      keyValuePairs.forEach(([key, value]) => {
+        store[key] = value;
+      });
+      return Promise.resolve();
+    }),
+    multiRemove: jest.fn((keys) => {
+      keys.forEach((key) => delete store[key]);
+      return Promise.resolve();
+    }),
+  };
+});
+
+// Mock react-native-toast-message
+jest.mock('react-native-toast-message', () => {
+  const React = require('react');
+  return {
+    __esModule: true,
+    default: () => null,
+    show: jest.fn(),
+    hide: jest.fn(),
+  };
+});
+
 // Mock @expo/vector-icons
 jest.mock('@expo/vector-icons', () => {
   const React = require('react');
@@ -29,8 +78,10 @@ jest.mock('react-native-paper', () => {
     PaperProvider: ({ children }) => children,
     Button: ({ children, onPress, loading, disabled, testID }) => (
       React.createElement(RN.TouchableOpacity, {
-        onPress: disabled || loading ? undefined : onPress,
+        onPress: (disabled || loading) ? null : onPress,
+        disabled: disabled || loading,
         testID,
+        accessibilityState: { disabled: disabled || loading },
       }, loading
         ? React.createElement(RN.ActivityIndicator, null)
         : React.createElement(RN.Text, null, children)

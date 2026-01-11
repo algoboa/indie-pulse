@@ -13,6 +13,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button, Input } from '../../components/common';
 import { useAuthStore } from '../../store/authStore';
 import { colors, spacing, typography } from '../../constants/theme';
+import {
+  validateEmail,
+  validatePassword,
+  validatePasswordConfirm,
+  validateDisplayName,
+} from '../../utils/validation';
 
 interface SignUpScreenProps {
   navigation: any;
@@ -39,32 +45,27 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
     setConfirmPasswordError('');
     clearError();
 
-    if (!displayName.trim()) {
-      setNameError('名前を入力してください');
+    const nameResult = validateDisplayName(displayName);
+    if (!nameResult.isValid) {
+      setNameError(nameResult.error || '');
       isValid = false;
     }
 
-    if (!email.trim()) {
-      setEmailError('メールアドレスを入力してください');
-      isValid = false;
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      setEmailError('有効なメールアドレスを入力してください');
+    const emailResult = validateEmail(email);
+    if (!emailResult.isValid) {
+      setEmailError(emailResult.error || '');
       isValid = false;
     }
 
-    if (!password) {
-      setPasswordError('パスワードを入力してください');
-      isValid = false;
-    } else if (password.length < 6) {
-      setPasswordError('パスワードは6文字以上必要です');
+    const passwordResult = validatePassword(password);
+    if (!passwordResult.isValid) {
+      setPasswordError(passwordResult.error || '');
       isValid = false;
     }
 
-    if (!confirmPassword) {
-      setConfirmPasswordError('パスワードを確認してください');
-      isValid = false;
-    } else if (password !== confirmPassword) {
-      setConfirmPasswordError('パスワードが一致しません');
+    const confirmResult = validatePasswordConfirm(password, confirmPassword);
+    if (!confirmResult.isValid) {
+      setConfirmPasswordError(confirmResult.error || '');
       isValid = false;
     }
 

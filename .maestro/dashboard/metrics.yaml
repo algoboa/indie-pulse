@@ -1,0 +1,51 @@
+appId: com.indiepulse.app
+---
+# Dashboard Metrics E2E Test
+# Tests the dashboard display and interactions
+# Note: Requires authenticated state
+
+- launchApp:
+    clearState: false
+
+# Assuming user is logged in, verify dashboard elements
+- assertVisible: "ダッシュボード"
+
+# Check KPI cards are visible
+- assertVisible: "MRR"
+- assertVisible: "解約率"
+- assertVisible: "LTV"
+- assertVisible: "ARPU"
+
+# Check period filter buttons
+- assertVisible: "今月"
+- assertVisible: "先月"
+- assertVisible: "3ヶ月"
+
+# Test period filter interaction
+- tapOn: "先月"
+# Data should refresh
+
+- tapOn: "3ヶ月"
+# Data should refresh again
+
+- tapOn: "今月"
+# Back to current month
+
+# Check MRR chart is visible
+- assertVisible: "MRR推移"
+
+# Check AI insights panel (Pro feature)
+- assertVisible: "AIインサイト"
+
+# Test pull to refresh
+- scroll:
+    direction: DOWN
+    speed: SLOW
+# Should trigger refresh
+
+# Verify data reloads
+- assertVisible: "MRR"
+
+# Check MRR breakdown section
+- assertVisible: "新規MRR"
+- assertVisible: "拡大MRR"

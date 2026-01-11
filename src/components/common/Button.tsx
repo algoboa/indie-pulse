@@ -15,6 +15,8 @@ interface ButtonProps {
   style?: ViewStyle;
   labelStyle?: TextStyle;
   testID?: string;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -28,6 +30,8 @@ const Button: React.FC<ButtonProps> = ({
   style,
   labelStyle,
   testID,
+  accessibilityLabel,
+  accessibilityHint,
 }) => {
   const getButtonColor = (): string => {
     switch (variant) {
@@ -57,6 +61,10 @@ const Button: React.FC<ButtonProps> = ({
       style={[styles.button, style]}
       labelStyle={[styles.label, labelStyle]}
       testID={testID}
+      accessibilityLabel={accessibilityLabel || children}
+      accessibilityHint={accessibilityHint}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: disabled || loading }}
     >
       {children}
     </PaperButton>

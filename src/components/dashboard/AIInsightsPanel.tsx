@@ -155,4 +155,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AIInsightsPanel;
+export default React.memo(AIInsightsPanel);

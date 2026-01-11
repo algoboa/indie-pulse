@@ -1,5 +1,5 @@
 // Cohorts Screen for Indie Pulse
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   StyleSheet,
   View,
@@ -22,6 +22,28 @@ const CohortsScreen: React.FC = () => {
     fetchAnalysisData,
     refreshData,
   } = useDataStore();
+
+  // Memoize summary calculations for performance
+  const summaryStats = useMemo(() => {
+    if (cohorts.length === 0) return null;
+
+    const avgRetention = (
+      cohorts.reduce((sum, c) => sum + (c.retentionRates[0] || 0), 0) / cohorts.length
+    ).toFixed(1);
+
+    const avgLtv = Math.round(
+      cohorts.reduce((sum, c) => sum + c.ltv, 0) / cohorts.length
+    );
+
+    const totalUsers = cohorts.reduce((sum, c) => sum + c.totalUsers, 0);
+
+    return {
+      avgRetention,
+      avgLtv,
+      totalUsers,
+      periodMonths: cohorts.length,
+    };
+  }, [cohorts]);
 
   useEffect(() => {
     if (cohorts.length === 0) {
@@ -97,38 +119,31 @@ const CohortsScreen: React.FC = () => {
         </View>
 
         {/* Summary Stats */}
-        {cohorts.length > 0 && (
+        {summaryStats && (
           <View style={styles.summaryContainer}>
             <Text style={styles.summaryTitle}>サマリー</Text>
             <View style={styles.summaryGrid}>
               <View style={styles.summaryCard}>
                 <Text style={styles.summaryLabel}>平均初月継続率</Text>
                 <Text style={styles.summaryValue}>
-                  {(
-                    cohorts.reduce((sum, c) => sum + (c.retentionRates[0] || 0), 0) /
-                    cohorts.length
-                  ).toFixed(1)}
-                  %
+                  {summaryStats.avgRetention}%
                 </Text>
               </View>
               <View style={styles.summaryCard}>
                 <Text style={styles.summaryLabel}>平均LTV</Text>
                 <Text style={styles.summaryValue}>
-                  ¥
-                  {Math.round(
-                    cohorts.reduce((sum, c) => sum + c.ltv, 0) / cohorts.length
-                  ).toLocaleString()}
+                  ¥{summaryStats.avgLtv.toLocaleString()}
                 </Text>
               </View>
               <View style={styles.summaryCard}>
                 <Text style={styles.summaryLabel}>総ユーザー数</Text>
                 <Text style={styles.summaryValue}>
-                  {cohorts.reduce((sum, c) => sum + c.totalUsers, 0)}人
+                  {summaryStats.totalUsers}人
                 </Text>
               </View>
               <View style={styles.summaryCard}>
                 <Text style={styles.summaryLabel}>分析期間</Text>
-                <Text style={styles.summaryValue}>{cohorts.length}ヶ月</Text>
+                <Text style={styles.summaryValue}>{summaryStats.periodMonths}ヶ月</Text>
               </View>
             </View>
           </View>

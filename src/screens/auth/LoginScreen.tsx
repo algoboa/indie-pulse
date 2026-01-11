@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button, Input } from '../../components/common';
 import { useAuthStore } from '../../store/authStore';
 import { colors, spacing, typography } from '../../constants/theme';
+import { validateEmail, validatePassword } from '../../utils/validation';
 
 interface LoginScreenProps {
   navigation: any;
@@ -32,19 +33,15 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     setPasswordError('');
     clearError();
 
-    if (!email.trim()) {
-      setEmailError('メールアドレスを入力してください');
-      isValid = false;
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      setEmailError('有効なメールアドレスを入力してください');
+    const emailResult = validateEmail(email);
+    if (!emailResult.isValid) {
+      setEmailError(emailResult.error || '');
       isValid = false;
     }
 
-    if (!password) {
-      setPasswordError('パスワードを入力してください');
-      isValid = false;
-    } else if (password.length < 6) {
-      setPasswordError('パスワードは6文字以上必要です');
+    const passwordResult = validatePassword(password);
+    if (!passwordResult.isValid) {
+      setPasswordError(passwordResult.error || '');
       isValid = false;
     }
 

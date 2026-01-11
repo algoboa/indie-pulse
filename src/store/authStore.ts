@@ -1,6 +1,6 @@
 // Authentication state store using Zustand
 import { create } from 'zustand';
-import { User } from 'firebase/auth';
+import { User, AuthError } from 'firebase/auth';
 import {
   signIn,
   signUp,
@@ -11,6 +11,24 @@ import {
   SignUpData,
   getAuthErrorMessage,
 } from '../services/authService';
+
+// Firebase error type guard
+const isAuthError = (error: unknown): error is AuthError => {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    typeof (error as AuthError).code === 'string'
+  );
+};
+
+// Extract error code safely
+const getErrorCode = (error: unknown): string => {
+  if (isAuthError(error)) {
+    return error.code;
+  }
+  return 'unknown';
+};
 
 interface AuthState {
   // State
@@ -49,8 +67,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       await signIn(data);
       // User state will be updated by the auth state listener
-    } catch (error: any) {
-      const errorMessage = getAuthErrorMessage(error.code);
+    } catch (error: unknown) {
+      const errorMessage = getAuthErrorMessage(getErrorCode(error));
       set({ error: errorMessage, isLoading: false });
       throw error;
     }
@@ -62,8 +80,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       await signUp(data);
       // User state will be updated by the auth state listener
-    } catch (error: any) {
-      const errorMessage = getAuthErrorMessage(error.code);
+    } catch (error: unknown) {
+      const errorMessage = getAuthErrorMessage(getErrorCode(error));
       set({ error: errorMessage, isLoading: false });
       throw error;
     }
@@ -75,8 +93,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       await signOut();
       set({ user: null, isLoading: false });
-    } catch (error: any) {
-      const errorMessage = getAuthErrorMessage(error.code);
+    } catch (error: unknown) {
+      const errorMessage = getAuthErrorMessage(getErrorCode(error));
       set({ error: errorMessage, isLoading: false });
       throw error;
     }
@@ -88,8 +106,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     try {
       await resetPassword(email);
       set({ isLoading: false });
-    } catch (error: any) {
-      const errorMessage = getAuthErrorMessage(error.code);
+    } catch (error: unknown) {
+      const errorMessage = getAuthErrorMessage(getErrorCode(error));
       set({ error: errorMessage, isLoading: false });
       throw error;
     }

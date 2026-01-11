@@ -1,5 +1,5 @@
 // Dashboard Screen for Indie Pulse
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import {
   StyleSheet,
   View,
@@ -12,18 +12,15 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDataStore } from '../../store/dataStore';
 import { useAuthStore } from '../../store/authStore';
-import { KPICard } from '../../components/cards';
 import { MRRChart } from '../../components/charts';
-import { AIInsightsPanel } from '../../components/dashboard';
+import {
+  AIInsightsPanel,
+  PeriodFilter,
+  KPIGrid,
+  MRRBreakdown,
+} from '../../components/dashboard';
 import { colors, spacing, typography, borderRadius } from '../../constants/theme';
-import { PeriodFilter } from '../../types/metrics';
-
-const periodOptions: { label: string; value: PeriodFilter['type'] }[] = [
-  { label: '今月', value: 'this_month' },
-  { label: '先月', value: 'last_month' },
-  { label: '3ヶ月', value: 'last_3_months' },
-  { label: '6ヶ月', value: 'last_6_months' },
-];
+import { PeriodFilter as PeriodFilterType } from '../../types/metrics';
 
 const DashboardScreen: React.FC = () => {
   const { user } = useAuthStore();
@@ -44,13 +41,9 @@ const DashboardScreen: React.FC = () => {
     fetchDashboard();
   }, [fetchDashboard]);
 
-  const formatCurrency = (value: number): string => {
-    return `¥${value.toLocaleString()}`;
-  };
-
-  const handlePeriodChange = (type: PeriodFilter['type']) => {
+  const handlePeriodChange = useCallback((type: PeriodFilterType['type']) => {
     setPeriodFilter({ type });
-  };
+  }, [setPeriodFilter]);
 
   const getGreeting = (): string => {
     const hour = new Date().getHours();
@@ -77,7 +70,12 @@ const DashboardScreen: React.FC = () => {
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={fetchDashboard}>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={fetchDashboard}
+            accessibilityRole="button"
+            accessibilityLabel="再試行"
+          >
             <Text style={styles.retryButtonText}>再試行</Text>
           </TouchableOpacity>
         </View>
@@ -106,129 +104,21 @@ const DashboardScreen: React.FC = () => {
         </View>
 
         {/* Period Filter */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.filterContainer}
-        >
-          {periodOptions.map((option) => (
-            <TouchableOpacity
-              key={option.value}
-              style={[
-                styles.filterButton,
-                periodFilter.type === option.value && styles.filterButtonActive,
-              ]}
-              onPress={() => handlePeriodChange(option.value)}
-            >
-              <Text
-                style={[
-                  styles.filterButtonText,
-                  periodFilter.type === option.value && styles.filterButtonTextActive,
-                ]}
-              >
-                {option.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        <PeriodFilter
+          selectedPeriod={periodFilter.type}
+          onPeriodChange={handlePeriodChange}
+        />
 
-        {/* KPI Cards */}
+        {/* KPI Cards and Charts */}
         {metrics && (
           <>
-            <View style={styles.kpiGrid}>
-              {/* MRR Card - Featured */}
-              <KPICard
-                label="MRR"
-                value={formatCurrency(metrics.mrr.value)}
-                change={metrics.mrr.changePercent}
-                trend={metrics.mrr.trend}
-                isFeatured
-                style={styles.mrrCard}
-                testID="mrr-card"
-              />
-
-              {/* Churn Rate */}
-              <KPICard
-                label="解約率"
-                value={metrics.churnRate.value}
-                suffix="%"
-                change={metrics.churnRate.changePercent}
-                trend={metrics.churnRate.trend}
-                isNegativeGood
-                style={styles.kpiCard}
-              />
-
-              {/* LTV */}
-              <KPICard
-                label="LTV"
-                value={formatCurrency(metrics.ltv.value)}
-                change={metrics.ltv.changePercent}
-                trend={metrics.ltv.trend}
-                style={styles.kpiCard}
-              />
-
-              {/* ARPU */}
-              <KPICard
-                label="ARPU"
-                value={formatCurrency(metrics.arpu.value)}
-                change={metrics.arpu.changePercent}
-                trend={metrics.arpu.trend}
-                style={styles.kpiCard}
-              />
-
-              {/* New Customers */}
-              <KPICard
-                label="新規顧客"
-                value={metrics.customers.newCustomers}
-                suffix="人"
-                style={styles.kpiCard}
-              />
-
-              {/* Active Users */}
-              <KPICard
-                label="アクティブ"
-                value={metrics.customers.activeUsers}
-                suffix="人"
-                style={styles.kpiCard}
-              />
-            </View>
+            <KPIGrid metrics={metrics} />
 
             {/* MRR Chart */}
             <View style={styles.chartContainer}>
               <Text style={styles.chartTitle}>MRR推移</Text>
               <MRRChart data={metrics.mrrHistory} />
-
-              {/* MRR Breakdown */}
-              <View style={styles.breakdownContainer}>
-                <View style={styles.breakdownItem}>
-                  <View style={[styles.breakdownDot, { backgroundColor: colors.chart.newMrr }]} />
-                  <Text style={styles.breakdownLabel}>新規</Text>
-                  <Text style={styles.breakdownValue}>
-                    {formatCurrency(metrics.mrrBreakdown.newMrr)}
-                  </Text>
-                </View>
-                <View style={styles.breakdownItem}>
-                  <View style={[styles.breakdownDot, { backgroundColor: colors.chart.expansion }]} />
-                  <Text style={styles.breakdownLabel}>拡大</Text>
-                  <Text style={styles.breakdownValue}>
-                    {formatCurrency(metrics.mrrBreakdown.expansionMrr)}
-                  </Text>
-                </View>
-                <View style={styles.breakdownItem}>
-                  <View style={[styles.breakdownDot, { backgroundColor: colors.chart.contraction }]} />
-                  <Text style={styles.breakdownLabel}>縮小</Text>
-                  <Text style={styles.breakdownValue}>
-                    -{formatCurrency(metrics.mrrBreakdown.contractionMrr)}
-                  </Text>
-                </View>
-                <View style={styles.breakdownItem}>
-                  <View style={[styles.breakdownDot, { backgroundColor: colors.chart.churn }]} />
-                  <Text style={styles.breakdownLabel}>解約</Text>
-                  <Text style={styles.breakdownValue}>
-                    -{formatCurrency(metrics.mrrBreakdown.churnMrr)}
-                  </Text>
-                </View>
-              </View>
+              <MRRBreakdown breakdown={metrics.mrrBreakdown} />
             </View>
 
             {/* AI Insights */}
@@ -294,41 +184,6 @@ const styles = StyleSheet.create({
     fontWeight: typography.fontWeight.bold,
     color: colors.text.primary,
   },
-  filterContainer: {
-    marginBottom: spacing.lg,
-  },
-  filterButton: {
-    backgroundColor: colors.background.secondary,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.md,
-    marginRight: spacing.sm,
-  },
-  filterButtonActive: {
-    backgroundColor: colors.accent.primary,
-  },
-  filterButtonText: {
-    color: colors.text.secondary,
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.medium,
-  },
-  filterButtonTextActive: {
-    color: colors.text.primary,
-  },
-  kpiGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginHorizontal: -spacing.xs,
-  },
-  kpiCard: {
-    margin: spacing.xs,
-    flex: 1,
-    minWidth: '45%',
-  },
-  mrrCard: {
-    margin: spacing.xs,
-    width: '97%',
-  },
   chartContainer: {
     marginTop: spacing.lg,
     backgroundColor: colors.background.secondary,
@@ -340,33 +195,6 @@ const styles = StyleSheet.create({
     fontWeight: typography.fontWeight.semibold,
     color: colors.text.primary,
     marginBottom: spacing.sm,
-  },
-  breakdownContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: spacing.md,
-    paddingTop: spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: colors.border.primary,
-  },
-  breakdownItem: {
-    alignItems: 'center',
-  },
-  breakdownDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginBottom: 4,
-  },
-  breakdownLabel: {
-    fontSize: typography.fontSize.xs,
-    color: colors.text.tertiary,
-    marginBottom: 2,
-  },
-  breakdownValue: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.medium,
-    color: colors.text.primary,
   },
 });
 

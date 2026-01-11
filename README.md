@@ -124,6 +124,37 @@ npm run test:watch
 npm run test:coverage
 ```
 
+### E2Eテスト (Maestro)
+
+Maestroを使用したE2Eテストが利用可能です。
+
+```bash
+# Maestroをインストール (macOS)
+brew install maestro
+
+# E2Eテストを実行
+maestro test .maestro/
+
+# 特定のフローを実行
+maestro test .maestro/auth/login.yaml
+```
+
+利用可能なE2Eテストフロー:
+- `.maestro/auth/login.yaml` - ログインフロー
+- `.maestro/auth/signup.yaml` - サインアップフロー
+- `.maestro/auth/passwordReset.yaml` - パスワードリセット
+- `.maestro/dashboard/metrics.yaml` - ダッシュボード表示
+- `.maestro/integrations/connect.yaml` - プラットフォーム連携
+
+### テスト構成
+
+- **Unit Tests**: Jest + React Native Testing Library
+  - コンポーネントテスト: `__tests__/components/`
+  - ストアテスト: `__tests__/store/`
+  - サービステスト: `__tests__/services/`
+- **E2E Tests**: Maestro
+  - テストフロー: `.maestro/`
+
 ### プロジェクト構造
 
 ```

@@ -19,6 +19,8 @@ interface InputProps {
   right?: React.ReactNode;
   style?: ViewStyle;
   testID?: string;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }
 
 const Input: React.FC<InputProps> = ({
@@ -36,6 +38,8 @@ const Input: React.FC<InputProps> = ({
   right,
   style,
   testID,
+  accessibilityLabel,
+  accessibilityHint,
 }) => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -52,6 +56,8 @@ const Input: React.FC<InputProps> = ({
         icon={isPasswordVisible ? 'eye-off' : 'eye'}
         onPress={togglePasswordVisibility}
         color={colors.text.secondary}
+        accessibilityLabel={isPasswordVisible ? 'パスワードを隠す' : 'パスワードを表示'}
+        accessibilityRole="button"
       />
     );
   };
@@ -87,6 +93,9 @@ const Input: React.FC<InputProps> = ({
           },
         }}
         testID={testID}
+        accessibilityLabel={accessibilityLabel || label}
+        accessibilityHint={accessibilityHint || (error ? `エラー: ${error}` : undefined)}
+        accessibilityState={{ disabled, selected: isFocused }}
       />
       {error && (
         <HelperText type="error" visible={!!error} style={styles.errorText}>

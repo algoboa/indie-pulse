@@ -1,0 +1,65 @@
+appId: com.indiepulse.app
+---
+# Sign Up Flow E2E Test
+# Tests the complete registration flow with validation
+
+- launchApp:
+    clearState: true
+
+# Navigate to signup screen
+- assertVisible: "ログイン"
+- tapOn: "アカウントを作成"
+
+# Wait for signup screen
+- assertVisible: "アカウント作成"
+
+# Test 1: Empty form submission
+- tapOn: "アカウントを作成"
+- assertVisible: "名前を入力してください"
+
+# Test 2: Fill in name only
+- tapOn:
+    id: "name-input"
+- inputText: "Test User"
+- tapOn: "アカウントを作成"
+- assertVisible: "メールアドレスを入力してください"
+
+# Test 3: Invalid email
+- tapOn:
+    id: "email-input"
+- inputText: "not-an-email"
+- tapOn: "アカウントを作成"
+- assertVisible: "有効なメールアドレスを入力してください"
+
+# Test 4: Fill valid email but no password
+- clearText:
+    id: "email-input"
+- inputText: "newuser@example.com"
+- tapOn: "アカウントを作成"
+- assertVisible: "パスワードを入力してください"
+
+# Test 5: Short password
+- tapOn:
+    id: "password-input"
+- inputText: "123"
+- tapOn: "アカウントを作成"
+- assertVisible: "パスワードは6文字以上必要です"
+
+# Test 6: Password mismatch
+- clearText:
+    id: "password-input"
+- inputText: "password123"
+- tapOn:
+    id: "confirm-password-input"
+- inputText: "differentpassword"
+- tapOn: "アカウントを作成"
+- assertVisible: "パスワードが一致しません"
+
+# Test 7: Valid complete form
+- clearText:
+    id: "confirm-password-input"
+- inputText: "password123"
+- tapOn: "アカウントを作成"
+
+# Should show loading or proceed to dashboard
+# Note: With mock auth, this tests the validation flow

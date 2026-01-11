@@ -1,6 +1,7 @@
 // Settings Store using Zustand for user preferences
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Currency } from '../types/metrics';
 
 interface SettingsState {
@@ -35,8 +36,6 @@ const defaultSettings = {
   emailNotificationsEnabled: true,
 };
 
-// Note: AsyncStorage needs to be installed separately
-// npm install @react-native-async-storage/async-storage
 export const useSettingsStore = create<SettingsState>()(
   persist(
     (set) => ({
@@ -65,31 +64,7 @@ export const useSettingsStore = create<SettingsState>()(
     }),
     {
       name: 'indie-pulse-settings',
-      // Use a simple storage for now - AsyncStorage can be added later
-      storage: {
-        getItem: (name) => {
-          try {
-            const value = global?.localStorage?.getItem(name);
-            return value ? JSON.parse(value) : null;
-          } catch {
-            return null;
-          }
-        },
-        setItem: (name, value) => {
-          try {
-            global?.localStorage?.setItem(name, JSON.stringify(value));
-          } catch {
-            // Ignore storage errors
-          }
-        },
-        removeItem: (name) => {
-          try {
-            global?.localStorage?.removeItem(name);
-          } catch {
-            // Ignore storage errors
-          }
-        },
-      },
+      storage: createJSONStorage(() => AsyncStorage),
     }
   )
 );

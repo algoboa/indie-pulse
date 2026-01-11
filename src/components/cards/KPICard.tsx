@@ -49,6 +49,13 @@ const KPICard: React.FC<KPICardProps> = ({
     return '→';
   };
 
+  const getAccessibilityLabel = (): string => {
+    const valueText = `${prefix}${typeof value === 'number' ? value.toLocaleString() : value}${suffix}`;
+    const trendText = trend === 'up' ? '上昇' : trend === 'down' ? '下降' : '安定';
+    const changeText = change !== undefined ? `${formatChange()} ${trendText}` : '';
+    return `${label}: ${valueText}${changeText ? `, ${changeText}` : ''}`;
+  };
+
   return (
     <View
       style={[
@@ -57,6 +64,9 @@ const KPICard: React.FC<KPICardProps> = ({
         style,
       ]}
       testID={testID}
+      accessible={true}
+      accessibilityLabel={getAccessibilityLabel()}
+      accessibilityRole="text"
     >
       <Text style={styles.label}>{label}</Text>
       <Text style={[styles.value, isFeatured && styles.featuredValue]}>
@@ -112,4 +122,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default KPICard;
+export default React.memo(KPICard);
